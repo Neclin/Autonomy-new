@@ -24,6 +24,10 @@ def checkEvents():
                 Renderer.mainCamera.speed += 3
             if event.key == pygame.K_DOWN:
                 Renderer.mainCamera.speed -= 3
+            
+            if event.key == pygame.K_RCTRL:
+                for chunk in World.worldData.values():
+                    chunk.save()
                     
         if event.type == pygame.MOUSEWHEEL:
             Renderer.mainCamera.changeZoom(event.y*0.2)
@@ -72,8 +76,6 @@ newPath.addPoint(4, 0)
 # newPath.addItem(0.33)
 # newPath.addItem(0)
 
-World.addChunk(pygame.Vector2(0, 0))
-World.addBuilding(Building(pygame.Vector2(0, 0), pygame.Vector2(1, 1)))
 
 frame1 = time.time()
 deltaTime = 0

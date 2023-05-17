@@ -3,6 +3,7 @@ import math
 
 from settings import *
 from world import World
+from Buildings.building import Building
 
 class Camera:
     def __init__(self, x, y, width, height, speed=15):
@@ -66,25 +67,25 @@ class Renderer:
 
     def drawToScreen():
         Renderer.win.fill((51,51,51))
-
-        screenTileHeight = int(SCREEN_HEIGHT // (TILE_SIZE * Renderer.mainCamera.zoom))
-        screenTileWidth = int(SCREEN_WIDTH // (TILE_SIZE * Renderer.mainCamera.zoom))
-        halfScreenTileHeight = screenTileHeight // 2 + 2
-        halfScreenTileWidth = screenTileWidth // 2 + 2
         
         Renderer.mainCamera.drawGrid(Renderer.win)
 
         Renderer.mainCamera.drawCursor(Renderer.win)
        
+        Renderer.drawChunks()
+
+        pygame.display.update()
+
+    def drawChunks():
         centerChunkPosition = Renderer.mainCamera.position//CHUNK_SIZE
-        numberOfChunksWidth = int(Renderer.mainCamera.size.x / Renderer.mainCamera.zoom // CHUNK_SIZE // 2) + 1
+        numberOfChunksWidth = int(Renderer.mainCamera.size.x / Renderer.mainCamera.zoom // CHUNK_SIZE // 2) +  1
         numberOfChunksHeight = int(Renderer.mainCamera.size.y / Renderer.mainCamera.zoom // CHUNK_SIZE // 2) + 1
         for chunkX in range(-numberOfChunksWidth, numberOfChunksWidth+1, 1):
             for chunkY in range(-numberOfChunksHeight, numberOfChunksHeight+1, 1):
                 chunkPosition = pygame.Vector2(chunkX, chunkY) + centerChunkPosition
                 if World.worldData.get(str(chunkPosition)) != None:
                     chunk = World.worldData[str(chunkPosition)]
-                    chunk.draw(Renderer.win)    
-
-        pygame.display.update()
+                    chunk.draw(Renderer)    
+                else:
+                    World.loadChunk(Building, chunkPosition)
 

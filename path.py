@@ -1,8 +1,5 @@
 import pygame
 
-from renderer import Renderer
-mainCamera = Renderer.mainCamera
-
 from listElement import PathPoint
 from item import Item
 
@@ -54,19 +51,19 @@ class Path:
             print(currentItem.distance)
             currentItem = currentItem.next
     
-    def draw(self, win):
+    def draw(self, renderer):
         currentPoint = self.pointsHead
         while currentPoint.next != None:
-            point1 = mainCamera.convertWorldToScreen(currentPoint.value)
-            point2 = mainCamera.convertWorldToScreen(currentPoint.next.value)
-            pygame.draw.line(win, (255,255,255), point1, point2, 1)
+            point1 = renderer.mainCamera.convertWorldToScreen(currentPoint.value)
+            point2 = renderer.mainCamera.convertWorldToScreen(currentPoint.next.value)
+            pygame.draw.line(renderer.win, (255,255,255), point1, point2, 1)
             currentPoint = currentPoint.next
 
         cumulativeDistance = 0
         currentItem = self.lastItem
         while currentItem != None:
             cumulativeDistance += currentItem.distance
-            currentItem.draw(win, self.getPositionAtDistance(cumulativeDistance))
+            currentItem.draw(renderer, self.getPositionAtDistance(cumulativeDistance))
             currentItem = currentItem.next
     
     def getPositionAtDistance(self, distance):
