@@ -1,6 +1,8 @@
 import pygame
+import math
 
 from settings import *
+from world import World
 
 class Camera:
     def __init__(self, x, y, width, height, speed=15):
@@ -15,8 +17,10 @@ class Camera:
     def convertScreenToWorld(self, screenVector):
         return (screenVector - pygame.Vector2(SCREEN_WIDTH/2, SCREEN_HEIGHT/2)) / (TILE_SIZE * self.zoom) + self.position
 
-    def convertWorldRectToScreen(self, positon, size):
-        return pygame.Rect(self.convertWorldToScreen(positon), size * TILE_SIZE * self.zoom)
+    def convertWorldRectToScreen(self, position, size):
+        dimensions = size * TILE_SIZE * self.zoom
+        dimensions.x, dimensions.y = math.ceil(dimensions.x), math.ceil(dimensions.y)
+        return pygame.Rect(self.convertWorldToScreen(position), dimensions)
 
     def drawGrid(self, win):
         # Draw Grid
@@ -59,7 +63,6 @@ class Renderer:
     win = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.NOFRAME)
     mainCamera = Camera(0, 0, SCREEN_WIDTH/TILE_SIZE, SCREEN_HEIGHT/TILE_SIZE, 15)
 
-    objectToDraw = []
 
     def drawToScreen():
         Renderer.win.fill((51,51,51))
@@ -73,9 +76,15 @@ class Renderer:
 
         Renderer.mainCamera.drawCursor(Renderer.win)
        
-
-        for obj in Renderer.objectToDraw:
-            obj.draw(Renderer.win)
+        centerChunkPosition = Renderer.mainCamera.position//CHUNK_SIZE
+        numberOfChunksWidth = int(Renderer.mainCamera.size.x / Renderer.mainCamera.zoom // CHUNK_SIZE // 2) + 1
+        numberOfChunksHeight = int(Renderer.mainCamera.size.y / Renderer.mainCamera.zoom // CHUNK_SIZE // 2) + 1
+        for chunkX in range(-numberOfChunksWidth, numberOfChunksWidth+1, 1):
+            for chunkY in range(-numberOfChunksHeight, numberOfChunksHeight+1, 1):
+                chunkPosition = pygame.Vector2(chunkX, chunkY) + centerChunkPosition
+                if World.worldData.get(str(chunkPosition)) != None:
+                    chunk = World.worldData[str(chunkPosition)]
+                    chunk.draw(Renderer.win)    
 
         pygame.display.update()
 

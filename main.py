@@ -1,9 +1,13 @@
 import pygame
 import time
+import math
 
 from renderer import Renderer 
+from world import World
 from path import Path
 from settings import FPS
+
+from Buildings.building import Building
 
 def checkEvents():
     for event in pygame.event.get():
@@ -15,18 +19,15 @@ def checkEvents():
             if event.key == pygame.K_ESCAPE:
                 pygame.quit()
                 quit()
-        
+
+            if event.key == pygame.K_UP:
+                Renderer.mainCamera.speed += 3
+            if event.key == pygame.K_DOWN:
+                Renderer.mainCamera.speed -= 3
+                    
         if event.type == pygame.MOUSEWHEEL:
             Renderer.mainCamera.changeZoom(event.y*0.2)
         
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            mousePos = pygame.mouse.get_pos()
-            mousePos = pygame.Vector2(mousePos[0], mousePos[1])
-            worldMousePos = Renderer.mainCamera.convertScreenToWorld(mousePos)
-            if event.button == 1:
-                newPath.addPoint(worldMousePos.x, worldMousePos.y)
-            if event.button == 3:
-                pass
             
 
 def checkKeys(deltaTime):
@@ -42,26 +43,44 @@ def checkKeys(deltaTime):
         direction.x = 1
     
     Renderer.mainCamera.move(direction * deltaTime)
+
+def checkMousePresses():
+    mousePressed = pygame.mouse.get_pressed(3)
+    if mousePressed:
+        mousePos = pygame.mouse.get_pos()
+        mousePos = pygame.Vector2(mousePos[0], mousePos[1])
+        worldMousePos = Renderer.mainCamera.convertScreenToWorld(mousePos)
+        intWorldMousePos = pygame.Vector2(math.floor(worldMousePos.x), math.floor(worldMousePos.y))
+        if mousePressed[0]:
+            # newPath.addPoint(worldMousePos.x, worldMousePos.y)
+            newBuilding = Building(intWorldMousePos, pygame.Vector2(1, 1))
+            newBuilding.place()
+        if mousePressed[2]:
+            newPath.addItem(0)
     
-    
+def quadraticBezier(p0, p1, p2, t):
+    return (1-t)**2 * p0 + 2*(1-t)*t*p1 + t**2 * p2
 
 newPath = Path()
 newPath.addPoint(0, 0)
-newPath.addPoint(5, 0)
-newPath.addPoint(3, 3)
-newPath.addPoint(2, 1)
-newPath.addItem(0.50)
-newPath.addItem(0.75)
-newPath.addItem(0.50)
-newPath.addItem(0.33)
-newPath.addItem(0)
-Renderer.objectToDraw.append(newPath)
+newPath.addPoint(0, 4)
+newPath.addPoint(4, 4)
+newPath.addPoint(4, 0)
+# newPath.addItem(0.50)
+# newPath.addItem(0.75)
+# newPath.addItem(0.50)
+# newPath.addItem(0.33)
+# newPath.addItem(0)
+
+World.addChunk(pygame.Vector2(0, 0))
+World.addBuilding(Building(pygame.Vector2(0, 0), pygame.Vector2(1, 1)))
 
 frame1 = time.time()
 deltaTime = 0
 while True:
     # Constantly executing code goes here
     checkEvents()
+    checkMousePresses()
 
     frame2 = time.time()
     if frame2 - frame1 >= 1/FPS:

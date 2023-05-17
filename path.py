@@ -20,7 +20,7 @@ class Path:
         self.distanceFromStart = 0
         self.distanceFromEnd = 0
 
-        self.speed = 3
+        self.speed = 15
 
     def addPoint(self, x, y):
         if self.pointsHead == None:
@@ -79,6 +79,10 @@ class Path:
         return currentPoint.value
 
     def updateItems(self, deltaTime):
+        if self.itemWithTheGaps == self.lastItem and self.distanceFromEnd == 0:
+            return
+        if self.lastItem == None:
+            return
         amountToMove = deltaTime * self.speed
         if self.distanceFromEnd > 0:
             self.lastItem.distance += amountToMove
