@@ -18,6 +18,15 @@ def checkEvents():
         
         if event.type == pygame.MOUSEWHEEL:
             Renderer.mainCamera.changeZoom(event.y*0.2)
+        
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            mousePos = pygame.mouse.get_pos()
+            mousePos = pygame.Vector2(mousePos[0], mousePos[1])
+            worldMousePos = Renderer.mainCamera.convertScreenToWorld(mousePos)
+            if event.button == 1:
+                newPath.addPoint(worldMousePos.x, worldMousePos.y)
+            if event.button == 3:
+                pass
             
 
 def checkKeys(deltaTime):
@@ -38,11 +47,13 @@ def checkKeys(deltaTime):
 
 newPath = Path()
 newPath.addPoint(0, 0)
-newPath.addPoint(1, 1)
-newPath.addPoint(1, 0)
-newPath.addPoint(3, 2)
+newPath.addPoint(5, 0)
+newPath.addPoint(3, 3)
+newPath.addPoint(2, 1)
 newPath.addItem(0.50)
+newPath.addItem(0.75)
 newPath.addItem(0.50)
+newPath.addItem(0.33)
 newPath.addItem(0)
 Renderer.objectToDraw.append(newPath)
 
@@ -56,7 +67,7 @@ while True:
     if frame2 - frame1 >= 1/FPS:
         deltaTime = frame2 - frame1
         frame1 = frame2
-        # Frame based code goes here
+        # Frame based code goes here  
         checkKeys(deltaTime)
         newPath.updateItems(deltaTime)
         Renderer.drawToScreen()

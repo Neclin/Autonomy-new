@@ -13,9 +13,14 @@ class Path:
         self.pathLength = 0
 
         self.lastItem = None
-        self.firstItem = None
+        self.mostFarItem = None
 
-        self.speed = 1
+        self.itemWithTheGaps = None
+        
+        self.distanceFromStart = 0
+        self.distanceFromEnd = 0
+
+        self.speed = 3
 
     def addPoint(self, x, y):
         if self.pointsHead == None:
@@ -27,22 +32,26 @@ class Path:
         distanceToLastPoint = (self.tail.next.value - self.tail.value).length()
         self.tail.next.distance = self.tail.distance + distanceToLastPoint
         self.pathLength += distanceToLastPoint
+        self.distanceFromEnd += distanceToLastPoint
         self.tail = self.tail.next
     
     def addItem(self, distance=0):
         if self.lastItem == None:
             self.lastItem = Item(distance)
-            self.firstItem = self.lastItem
-            return
+            self.mostFarItem = self.lastItem
+            self.itemWithTheGaps = self.lastItem
         else:
-            self.lastItem.next = Item(distance)
-            self.lastItem.next.prev = self.lastItem
-            self.lastItem = self.lastItem.next
+            newItem = Item(distance)
+            newItem.next = self.lastItem
+            self.lastItem.prev = newItem
+            self.lastItem = newItem
+
+        self.distanceFromEnd -= distance
 
     def printItems(self):
         currentItem = self.lastItem
         while currentItem != None:
-            print(currentItem.position)
+            print(currentItem.distance)
             currentItem = currentItem.next
     
     def draw(self, win):
@@ -70,4 +79,34 @@ class Path:
         return currentPoint.value
 
     def updateItems(self, deltaTime):
-        pass
+        amountToMove = deltaTime * self.speed
+        if self.distanceFromEnd > 0:
+            self.lastItem.distance += amountToMove
+            self.distanceFromEnd -= amountToMove
+            if self.distanceFromEnd < 0:
+                self.lastItem.distance += self.distanceFromEnd
+                self.distanceFromEnd = 0
+        else:
+            self.itemWithTheGaps.distance -= amountToMove
+            if self.itemWithTheGaps.distance < 0.25:
+                amountToMoveNextItem = -self.itemWithTheGaps.distance + 0.25
+                self.itemWithTheGaps.distance = 0.25
+                self.itemWithTheGaps = self.itemWithTheGaps.prev
+                self.itemWithTheGaps.distance -= amountToMoveNextItem
+
+            self.lastItem.distance += amountToMove
+
+        # print(self.pathLength, self.mostFarItemDistance)
+        # amountToMove = deltaTime * self.speed
+        # if self.pathLength - self.mostFarItemDistance > 0:
+        #     self.lastItem.distance += amountToMove
+        #     self.mostFarItemDistance += amountToMove
+
+        # elif self.pathLength - self.mostFarItemDistance < 0:
+        #     self.lastItem.distance += self.pathLength - self.mostFarItemDistance
+        #     self.mostFarItemDistance += self.pathLength - self.mostFarItemDistance
+
+            
+
+        
+        
