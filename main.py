@@ -5,11 +5,15 @@ import math
 from renderer import Renderer 
 from world import World
 from path import Path
-from settings import FPS
+from settings import FPS, CHUNK_SIZE
 
 from Buildings.building import Building
+from Buildings.belt import Belt
+
+activePlaceable = Building
 
 def checkEvents():
+    global activePlaceable
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
@@ -17,6 +21,8 @@ def checkEvents():
         
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
+                for chunk in World.worldData.values():
+                    chunk.save()
                 pygame.quit()
                 quit()
 
@@ -24,13 +30,15 @@ def checkEvents():
                 Renderer.mainCamera.speed += 3
             if event.key == pygame.K_DOWN:
                 Renderer.mainCamera.speed -= 3
-            
-            if event.key == pygame.K_RCTRL:
-                for chunk in World.worldData.values():
-                    chunk.save()
+
+            if event.key == pygame.K_1:
+                activePlaceable = Building
+            if event.key == pygame.K_2:
+                activePlaceable = Belt
                     
         if event.type == pygame.MOUSEWHEEL:
-            Renderer.mainCamera.changeZoom(event.y*0.2)
+            Renderer.mainCamera.changeZoom(event.y*0.1)
+            Belt.scaleSprite(Renderer)
         
             
 
@@ -57,10 +65,10 @@ def checkMousePresses():
         intWorldMousePos = pygame.Vector2(math.floor(worldMousePos.x), math.floor(worldMousePos.y))
         if mousePressed[0]:
             # newPath.addPoint(worldMousePos.x, worldMousePos.y)
-            newBuilding = Building(intWorldMousePos, pygame.Vector2(1, 1))
+            newBuilding = activePlaceable(intWorldMousePos, pygame.Vector2(1, 1))
             newBuilding.place()
         if mousePressed[2]:
-            newPath.addItem(0)
+            World.removeBuilding(intWorldMousePos)
     
 def quadraticBezier(p0, p1, p2, t):
     return (1-t)**2 * p0 + 2*(1-t)*t*p1 + t**2 * p2
@@ -76,8 +84,16 @@ newPath.addPoint(4, 0)
 # newPath.addItem(0.33)
 # newPath.addItem(0)
 
+Buildings = {"Building": Building,
+             "Belt": Belt}
+
+startLoading = time.time()
+World.loadAllChunks(Buildings)
+print(f"Loading took {time.time() - startLoading} seconds")
 
 frame1 = time.time()
+tick = 0
+animationFrame = 0
 deltaTime = 0
 while True:
     # Constantly executing code goes here
@@ -86,10 +102,21 @@ while True:
 
     frame2 = time.time()
     if frame2 - frame1 >= 1/FPS:
+        #print("FPS: ", 1/deltaTime) if deltaTime != 0 else None
+        #print(len(World.worldData))
         deltaTime = frame2 - frame1
         frame1 = frame2
         # Frame based code goes here  
         checkKeys(deltaTime)
         newPath.updateItems(deltaTime)
         Renderer.drawToScreen()
+
+        tick += 1
+
+        if tick % 2 == 0:
+            animationFrame += 1
+            animationFrame %= 8
+
+            for building in Buildings.values():
+                building.scaleSprite(Renderer, animationFrame)
     

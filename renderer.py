@@ -54,10 +54,10 @@ class Camera:
     
     def changeZoom(self, amount):
         self.zoom += amount
-        if self.zoom < 0.25:
-            self.zoom = 0.25
-        if self.zoom > 3:
-            self.zoom = 3
+        if self.zoom < 0.5:
+            self.zoom = 0.5
+        if self.zoom > 2:
+            self.zoom = 2
 
 
 class Renderer:
@@ -85,7 +85,9 @@ class Renderer:
                 chunkPosition = pygame.Vector2(chunkX, chunkY) + centerChunkPosition
                 if World.worldData.get(str(chunkPosition)) != None:
                     chunk = World.worldData[str(chunkPosition)]
-                    chunk.draw(Renderer)    
-                else:
-                    World.loadChunk(Building, chunkPosition)
+                    chunk.draw(Renderer)  
+
+                # For loading chunks when they are visible to the player  
+                # else:
+                #     World.loadChunk(Building, chunkPosition)
 

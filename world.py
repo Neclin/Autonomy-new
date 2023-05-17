@@ -1,4 +1,5 @@
 import pygame
+import os
 
 from settings import CHUNK_SIZE, DEBUG_COLOUR
 
@@ -25,6 +26,9 @@ class Chunk:
         pygame.draw.rect(renderer.win, DEBUG_COLOUR, rect, 1)
     
     def save(self):
+        if self.gameObject == []:
+            os.remove("Chunks/"+str(self.position)+".txt")
+            return
         with open("Chunks/"+str(self.position)+".txt", "w") as file:
             for building in self.gameObject:
                 file.write(building.saveString()+"\n")
@@ -35,14 +39,23 @@ class World:
     def addChunk(position):
         World.worldData[str(position)] = Chunk(position)
 
-    def loadChunk(Building, position):
+    def loadAllChunks(Buildings):
+        chunkDirectory = os.listdir("Chunks")
+        for chunk in chunkDirectory:
+            chunk = chunk.removeprefix("[")
+            chunk = chunk.removesuffix("].txt")
+            chunk = chunk.split(",")
+            chunk = pygame.Vector2(int(chunk[0]), int(chunk[1]))
+            World.loadChunk(Buildings, chunk)
+
+    def loadChunk(Buildings, position):
         try:
             with open("Chunks/"+str(position)+".txt", "r") as file:
                 chunk = Chunk(position)
                 for line in file:
                     line = line.strip()
-                    if line.startswith("Building"):
-                        chunk.addBuilding(Building.loadString(line))
+                    firstWorld = line.split(",")[0]
+                    chunk.addBuilding(Buildings[firstWorld].loadString(line))
                 World.worldData[str(position)] = chunk
         except FileNotFoundError:
             pass
@@ -52,3 +65,14 @@ class World:
         if World.worldData.get(str(chunkPosition)) == None:
             World.addChunk(chunkPosition)
         World.worldData[str(chunkPosition)].addBuilding(building)
+    
+    def removeBuilding(position):
+        chunkPosition = position//CHUNK_SIZE
+        if World.worldData.get(str(chunkPosition)) == None:
+            return
+        chunk = World.worldData[str(chunkPosition)]
+        for building in chunk.gameObject:
+            if building.position == position:
+                chunk.gameObject.remove(building)
+                del chunk.chunkData[str(position)]
+                break
