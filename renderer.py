@@ -23,7 +23,7 @@ class Camera:
         dimensions.x, dimensions.y = math.ceil(dimensions.x), math.ceil(dimensions.y)
         return pygame.Rect(self.convertWorldToScreen(position), dimensions)
 
-    def drawGrid(self, win):
+    def drawGrid(self):
         # Draw Grid
         halfNumberOfTilesHeight = int(self.size.y / self.zoom // 2) + 2
         halfNumberOfTilesWidth = int(self.size.x  / self.zoom // 2) + 2
@@ -42,12 +42,12 @@ class Camera:
             rightPoint = self.convertWorldToScreen(rightPoint)
             pygame.draw.line(Renderer.win, GRID_COLOUR, leftPoint, rightPoint, 1)
     
-    def drawCursor(self, win):
+    def drawCursor(self):
         mousePos = pygame.mouse.get_pos()
         mousePos = self.convertScreenToWorld(pygame.Vector2(mousePos[0], mousePos[1]))
         mousePos = mousePos//1
         cursorRect = self.convertWorldRectToScreen(mousePos, pygame.Vector2(1,1))
-        pygame.draw.rect(win, (255,255,255), cursorRect, 1, border_radius=int(5*self.zoom))
+        pygame.draw.rect(Renderer.win, (255,255,255), cursorRect, 1, border_radius=int(5*self.zoom))
 
     def move(self, direction):
         self.position += direction * self.speed / self.zoom
@@ -68,9 +68,9 @@ class Renderer:
     def drawToScreen():
         Renderer.win.fill((51,51,51))
         
-        Renderer.mainCamera.drawGrid(Renderer.win)
+        Renderer.mainCamera.drawGrid()
 
-        Renderer.mainCamera.drawCursor(Renderer.win)
+        Renderer.mainCamera.drawCursor()
        
         Renderer.drawChunks()
 

@@ -42,8 +42,12 @@ class World:
     def loadAllChunks(Buildings):
         chunkDirectory = os.listdir("Chunks")
         for chunk in chunkDirectory:
-            chunk = chunk.removeprefix("[")
-            chunk = chunk.removesuffix("].txt")
+            try:
+                chunk = chunk.removeprefix("[")
+                chunk = chunk.removesuffix("].txt")
+            except:
+                chunk = chunk.lstrip("[")
+                chunk = chunk.rstrip("].txt")
             chunk = chunk.split(",")
             chunk = pygame.Vector2(int(chunk[0]), int(chunk[1]))
             World.loadChunk(Buildings, chunk)
