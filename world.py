@@ -41,26 +41,26 @@ class World:
 
     def loadAllChunks(Buildings):
         chunkDirectory = os.listdir("Chunks")
-        for chunk in chunkDirectory:
-            try:
-                chunk = chunk.removeprefix("[")
-                chunk = chunk.removesuffix("].txt")
-            except:
-                chunk = chunk.lstrip("[")
-                chunk = chunk.rstrip("].txt")
-            chunk = chunk.split(",")
-            chunk = pygame.Vector2(int(chunk[0]), int(chunk[1]))
-            World.loadChunk(Buildings, chunk)
+        for filePath in chunkDirectory:
+            World.loadChunk(Buildings, filePath)
 
-    def loadChunk(Buildings, position):
+    def loadChunk(Buildings, fileName):
         try:
-            with open("Chunks/"+str(position)+".txt", "r") as file:
-                chunk = Chunk(position)
+            with open("Chunks/"+fileName, "r") as file:
+                try:
+                    chunk = fileName.removeprefix("[")
+                    chunk = chunk.removesuffix("].txt")
+                except:
+                    chunk = fileName.lstrip("[")
+                    chunk = chunk.rstrip("].txt")
+                chunk = chunk.split(",")
+                chunk = pygame.Vector2(int(chunk[0]), int(chunk[1]))
+                chunk = Chunk(chunk)
                 for line in file:
                     line = line.strip()
                     firstWorld = line.split(",")[0]
                     chunk.addBuilding(Buildings[firstWorld].loadString(line))
-                World.worldData[str(position)] = chunk
+                World.worldData[str(chunk.position)] = chunk
         except FileNotFoundError:
             pass
 

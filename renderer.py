@@ -11,6 +11,8 @@ class Camera:
         self.size = pygame.Vector2(width, height)
         self.speed = speed
         self.zoom = 1
+
+        self.mouseDirection = pygame.Vector2(0,0)
     
     def convertWorldToScreen(self, worldVector):
         return (worldVector - self.position) * TILE_SIZE * self.zoom + pygame.Vector2(SCREEN_WIDTH/2, SCREEN_HEIGHT/2)
@@ -48,6 +50,9 @@ class Camera:
         mousePos = mousePos//1
         cursorRect = self.convertWorldRectToScreen(mousePos, pygame.Vector2(1,1))
         pygame.draw.rect(Renderer.win, (255,255,255), cursorRect, 1, border_radius=int(5*self.zoom))
+
+        # draw line pointing in mouse direction
+        pygame.draw.line(Renderer.win, (255,255,255), cursorRect.center, cursorRect.center + self.mouseDirection*TILE_SIZE//2, 1)
 
     def move(self, direction):
         self.position += direction * self.speed / self.zoom

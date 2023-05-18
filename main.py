@@ -1,7 +1,6 @@
 import pygame
 import time
 import math
-import os
 
 from renderer import Renderer 
 from world import World
@@ -41,6 +40,8 @@ def checkEvents():
             Renderer.mainCamera.changeZoom(event.y*0.1)
             Belt.scaleSprite(Renderer)
         
+        if event.type == pygame.MOUSEMOTION:
+            Renderer.mainCamera.mouseDirection = pygame.Vector2(event.rel[0], event.rel[1]).normalize()
             
 
 def checkKeys(deltaTime):
@@ -88,10 +89,9 @@ newPath.addPoint(4, 0)
 Buildings = {"Building": Building,
              "Belt": Belt}
 
-# startLoading = time.time()
-# World.loadAllChunks(Buildings)
-# print(f"Loading took {time.time() - startLoading} seconds")
-allChunkFiles = os.listdir("Chunks")
+startLoading = time.time()
+World.loadAllChunks(Buildings)
+print(f"Loading took {time.time() - startLoading} seconds")
 
 frame1 = time.time()
 tick = 0
@@ -121,19 +121,4 @@ while True:
 
             for building in Buildings.values():
                 building.scaleSprite(Renderer, animationFrame)
-
-        if tick % 5 == 0:
-            if len(allChunkFiles) > 0:
-                chunk = allChunkFiles[0]
-                try:
-                    chunk = chunk.removeprefix("[")
-                    chunk = chunk.removesuffix("].txt")
-                except:
-                    chunk = chunk.lstrip("[")
-                    chunk = chunk.rstrip("].txt")
-                chunk = chunk.split(", ")
-                chunk = pygame.Vector2(int(chunk[0]), int(chunk[1]))
-
-                World.loadChunk(Buildings, chunk)
-                allChunkFiles.pop(0)
     
