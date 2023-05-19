@@ -17,7 +17,7 @@ class Path:
         self.distanceFromStart = 0
         self.distanceFromEnd = 0
 
-        self.speed = 15
+        self.speed = 5
 
     def addPoint(self, x, y):
         if self.pointsHead == None:
@@ -26,11 +26,17 @@ class Path:
             return
         
         self.tail.next = PathPoint(pygame.Vector2(x,y))
-        distanceToLastPoint = (self.tail.next.value - self.tail.value).length()
+        distanceToLastPoint = (self.tail.next.position - self.tail.position).length()
         self.tail.next.distance = self.tail.distance + distanceToLastPoint
         self.pathLength += distanceToLastPoint
         self.distanceFromEnd += distanceToLastPoint
         self.tail = self.tail.next
+
+    def addPath(self, path):
+        self.tail.next = path.pointsHead
+        self.pathLength += path.pathLength
+        self.distanceFromEnd += path.pathLength
+        del(path)
     
     def addItem(self, distance=0):
         if self.lastItem == None:
@@ -54,8 +60,8 @@ class Path:
     def draw(self, renderer):
         currentPoint = self.pointsHead
         while currentPoint.next != None:
-            point1 = renderer.mainCamera.convertWorldToScreen(currentPoint.value)
-            point2 = renderer.mainCamera.convertWorldToScreen(currentPoint.next.value)
+            point1 = renderer.mainCamera.convertWorldToScreen(currentPoint.position)
+            point2 = renderer.mainCamera.convertWorldToScreen(currentPoint.next.position)
             pygame.draw.line(renderer.win, (255,255,255), point1, point2, 1)
             currentPoint = currentPoint.next
 
@@ -71,9 +77,9 @@ class Path:
         while currentPoint.next != None:
             if distance >= currentPoint.distance and distance < currentPoint.next.distance:
                 distanceRatio = (distance - currentPoint.distance) / (currentPoint.next.distance - currentPoint.distance)
-                return currentPoint.value + (currentPoint.next.value - currentPoint.value) * distanceRatio
+                return currentPoint.position + (currentPoint.next.position - currentPoint.position) * distanceRatio
             currentPoint = currentPoint.next
-        return currentPoint.value
+        return currentPoint.position
 
     def updateItems(self, deltaTime):
         if self.itemWithTheGaps == self.lastItem and self.distanceFromEnd == 0:
@@ -96,18 +102,4 @@ class Path:
                 self.itemWithTheGaps.distance -= amountToMoveNextItem
 
             self.lastItem.distance += amountToMove
-
-        # print(self.pathLength, self.mostFarItemDistance)
-        # amountToMove = deltaTime * self.speed
-        # if self.pathLength - self.mostFarItemDistance > 0:
-        #     self.lastItem.distance += amountToMove
-        #     self.mostFarItemDistance += amountToMove
-
-        # elif self.pathLength - self.mostFarItemDistance < 0:
-        #     self.lastItem.distance += self.pathLength - self.mostFarItemDistance
-        #     self.mostFarItemDistance += self.pathLength - self.mostFarItemDistance
-
-            
-
-        
         

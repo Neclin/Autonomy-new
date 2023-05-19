@@ -52,15 +52,15 @@ class Camera:
         pygame.draw.rect(Renderer.win, (255,255,255), cursorRect, 1, border_radius=int(5*self.zoom))
 
         # draw line pointing in mouse direction
-        pygame.draw.line(Renderer.win, (255,255,255), cursorRect.center, cursorRect.center + self.mouseDirection*TILE_SIZE//2, 1)
+        # pygame.draw.line(Renderer.win, (255,255,255), cursorRect.center, cursorRect.center + self.mouseDirection*TILE_SIZE//2, 1)
 
     def move(self, direction):
         self.position += direction * self.speed / self.zoom
     
     def changeZoom(self, amount):
         self.zoom += amount
-        if self.zoom < 0.5:
-            self.zoom = 0.5
+        if self.zoom < 0.1:
+            self.zoom = 0.1
         if self.zoom > 2:
             self.zoom = 2
 
@@ -68,6 +68,7 @@ class Camera:
 class Renderer:
     win = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.NOFRAME)
     mainCamera = Camera(0, 0, SCREEN_WIDTH/TILE_SIZE, SCREEN_HEIGHT/TILE_SIZE, 15)
+    animationFrame = 0
 
 
     def drawToScreen():

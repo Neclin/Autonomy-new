@@ -35,13 +35,28 @@ def checkEvents():
                 activePlaceable = Building
             if event.key == pygame.K_2:
                 activePlaceable = Belt
-                    
+            
+            if event.key == pygame.K_z:
+                mousePosition = pygame.mouse.get_pos()
+                mouseChunk = Renderer.mainCamera.convertScreenToWorld(pygame.Vector2(mousePosition[0], mousePosition[1]))//CHUNK_SIZE
+                chunk = World.worldData.get(str(mouseChunk))
+                if chunk != None:
+                    if len(chunk.paths) != 0:
+                        chunk.paths[0].addItem(0)
+
         if event.type == pygame.MOUSEWHEEL:
             Renderer.mainCamera.changeZoom(event.y*0.1)
-            Belt.scaleSprite(Renderer)
         
         if event.type == pygame.MOUSEMOTION:
-            Renderer.mainCamera.mouseDirection = pygame.Vector2(event.rel[0], event.rel[1]).normalize()
+            relativeMouseVector = pygame.Vector2(event.rel[0], event.rel[1])
+            if abs(relativeMouseVector.x) > abs(relativeMouseVector.y):
+                relativeMouseVector.y = 0
+            else:
+                relativeMouseVector.x = 0
+            if relativeMouseVector.length() != 0:
+                relativeMouseVector = relativeMouseVector.normalize()
+            Renderer.mainCamera.mouseDirection = relativeMouseVector
+
             
 
 def checkKeys(deltaTime):
@@ -66,8 +81,10 @@ def checkMousePresses():
         worldMousePos = Renderer.mainCamera.convertScreenToWorld(mousePos)
         intWorldMousePos = pygame.Vector2(math.floor(worldMousePos.x), math.floor(worldMousePos.y))
         if mousePressed[0]:
-            # newPath.addPoint(worldMousePos.x, worldMousePos.y)
-            newBuilding = activePlaceable(intWorldMousePos, pygame.Vector2(1, 1))
+            if activePlaceable == Building:
+                newBuilding = activePlaceable(intWorldMousePos, pygame.Vector2(1, 1))
+            elif activePlaceable == Belt:
+                newBuilding = activePlaceable(intWorldMousePos, pygame.Vector2(1, 1), Renderer.mainCamera.mouseDirection, Renderer.mainCamera.mouseDirection)
             newBuilding.place()
         if mousePressed[2]:
             World.removeBuilding(intWorldMousePos)
@@ -75,23 +92,24 @@ def checkMousePresses():
 def quadraticBezier(p0, p1, p2, t):
     return (1-t)**2 * p0 + 2*(1-t)*t*p1 + t**2 * p2
 
-newPath = Path()
-newPath.addPoint(0, 0)
-newPath.addPoint(0, 4)
-newPath.addPoint(4, 4)
-newPath.addPoint(4, 0)
-# newPath.addItem(0.50)
-# newPath.addItem(0.75)
-# newPath.addItem(0.50)
-# newPath.addItem(0.33)
-# newPath.addItem(0)
-
 Buildings = {"Building": Building,
              "Belt": Belt}
 
 startLoading = time.time()
 World.loadAllChunks(Buildings)
 print(f"Loading took {time.time() - startLoading} seconds")
+
+newPath = Path()
+newPath.addPoint(0, 0)
+newPath.addPoint(0, 4)
+newPath.addPoint(4, 4)
+newPath.addPoint(4, 0)
+World.addPath(newPath)
+# newPath.addItem(0.50)
+# newPath.addItem(0.75)
+# newPath.addItem(0.50)
+# newPath.addItem(0.33)
+# newPath.addItem(0)
 
 frame1 = time.time()
 tick = 0
@@ -116,9 +134,5 @@ while True:
         tick += 1
 
         if tick % 2 == 0:
-            animationFrame += 1
-            animationFrame %= 8
-
-            for building in Buildings.values():
-                building.scaleSprite(Renderer, animationFrame)
-    
+            Renderer.animationFrame += 1
+            Renderer.animationFrame %= 8    

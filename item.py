@@ -10,7 +10,7 @@ class Item():
         self.size = pygame.Vector2(0.25, 0.25)
 
     def draw(self, renderer, position):
-        itemRect = renderer.convertWorldRectToScreen(position, self.size)
+        itemRect = renderer.mainCamera.convertWorldRectToScreen(position, self.size)
         itemRect.center = itemRect.topleft
         pygame.draw.rect(renderer.win, (255,0,0), itemRect, 1)
 

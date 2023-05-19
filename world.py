@@ -7,19 +7,26 @@ class Chunk:
     def __init__(self, position):
         self.position = position
         self.gameObject = []
+        self.paths = []
         self.chunkData = {}
         self.size = pygame.Vector2(CHUNK_SIZE, CHUNK_SIZE)
     
     def draw(self, renderer):
+        self.drawChunk(renderer)   
         for gameObject in self.gameObject:
             gameObject.draw(renderer)
-        self.drawChunk(renderer)    
+        for path in self.paths:
+            path.draw(renderer)
 
     def addBuilding(self, building):
         if self.chunkData.get(str(building.position)) != None:
-            return
+            return False
         self.gameObject.append(building)
         self.chunkData[str(building.position)] = building
+        return True
+    
+    def addPath(self, path):
+        self.paths.append(path)
     
     def drawChunk(self, renderer):
         rect = renderer.mainCamera.convertWorldRectToScreen(self.position * CHUNK_SIZE, self.size)
@@ -27,7 +34,8 @@ class Chunk:
     
     def save(self):
         if self.gameObject == []:
-            os.remove("Chunks/"+str(self.position)+".txt")
+            if os.path.isfile("Chunks/"+str(self.position)+".txt"):
+                os.remove("Chunks/"+str(self.position)+".txt")
             return
         with open("Chunks/"+str(self.position)+".txt", "w") as file:
             for building in self.gameObject:
@@ -68,7 +76,7 @@ class World:
         chunkPosition = building.position//CHUNK_SIZE
         if World.worldData.get(str(chunkPosition)) == None:
             World.addChunk(chunkPosition)
-        World.worldData[str(chunkPosition)].addBuilding(building)
+        return World.worldData[str(chunkPosition)].addBuilding(building)
     
     def removeBuilding(position):
         chunkPosition = position//CHUNK_SIZE
@@ -80,3 +88,9 @@ class World:
                 chunk.gameObject.remove(building)
                 del chunk.chunkData[str(position)]
                 break
+
+    def addPath(path):
+        chunkPosition = path.pointsHead.position//CHUNK_SIZE
+        if World.worldData.get(str(chunkPosition)) == None:
+            World.addChunk(chunkPosition)
+        World.worldData[str(chunkPosition)].addPath(path)
