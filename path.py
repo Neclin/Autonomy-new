@@ -1,5 +1,8 @@
 import pygame
 
+from settings import CHUNK_SIZE
+from world import World
+
 from listElement import PathPoint
 from item import Item
 
@@ -19,24 +22,45 @@ class Path:
 
         self.speed = 5
 
-    def addPoint(self, x, y):
+    def addPoint(self, position):
         if self.pointsHead == None:
-            self.pointsHead = PathPoint(pygame.Vector2(x,y))
+            self.pointsHead = PathPoint(position)
             self.tail = self.pointsHead
             return
         
-        self.tail.next = PathPoint(pygame.Vector2(x,y))
+        self.tail.next = PathPoint(position)
         distanceToLastPoint = (self.tail.next.position - self.tail.position).length()
-        self.tail.next.distance = self.tail.distance + distanceToLastPoint
+        self.tail.next.distance = distanceToLastPoint
         self.pathLength += distanceToLastPoint
         self.distanceFromEnd += distanceToLastPoint
         self.tail = self.tail.next
 
     def addPath(self, path):
+        # Merge the two linked lists for paths
         self.tail.next = path.pointsHead
+        path.pointsHead.prev = self.tail
+        self.tail = path.tail
+
+        # Transfer the item linked list
+        self.lastItem = path.lastItem
+        self.itemWithTheGaps = path.itemWithTheGaps
+        self.mostFarItem = path.mostFarItem
+
+        if self.lastItem != None:
+            self.lastItem.distance += self.pathLength
+            self.distanceFromEnd = path.distanceFromEnd
+        else:
+            self.distanceFromEnd += path.distanceFromEnd
         self.pathLength += path.pathLength
-        self.distanceFromEnd += path.pathLength
-        del(path)
+        path.removePath()
+    
+    def removePath(self):
+        chunkPosition = self.pointsHead.position//CHUNK_SIZE
+        chunk = World.worldData.get(str(chunkPosition))
+        if chunk:
+            chunk.paths.remove(self)
+        del(self)
+            
     
     def addItem(self, distance=0):
         if self.lastItem == None:
@@ -74,14 +98,20 @@ class Path:
     
     def getPositionAtDistance(self, distance):
         currentPoint = self.pointsHead
+        cumulativeDistance = 0
         while currentPoint.next != None:
-            if distance >= currentPoint.distance and distance < currentPoint.next.distance:
-                distanceRatio = (distance - currentPoint.distance) / (currentPoint.next.distance - currentPoint.distance)
-                return currentPoint.position + (currentPoint.next.position - currentPoint.position) * distanceRatio
+            if cumulativeDistance + currentPoint.next.distance > distance:
+                return currentPoint.position + (currentPoint.next.position - currentPoint.position).normalize() * (distance - cumulativeDistance)
+            cumulativeDistance += currentPoint.next.distance
             currentPoint = currentPoint.next
         return currentPoint.position
 
+
     def updateItems(self, deltaTime):
+        print(self.pathLength, self.distanceFromEnd, self.itemWithTheGaps, end=" ")
+        if self.lastItem != None:
+            print(self.lastItem.distance, end=" ")
+        print()
         if self.itemWithTheGaps == self.lastItem and self.distanceFromEnd == 0:
             return
         if self.lastItem == None:

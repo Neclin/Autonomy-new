@@ -38,11 +38,14 @@ def checkEvents():
             
             if event.key == pygame.K_z:
                 mousePosition = pygame.mouse.get_pos()
-                mouseChunk = Renderer.mainCamera.convertScreenToWorld(pygame.Vector2(mousePosition[0], mousePosition[1]))//CHUNK_SIZE
+                mousePosition = Renderer.mainCamera.convertScreenToWorld(pygame.Vector2(mousePosition[0], mousePosition[1]))
+                buildingPosition = mousePosition//1
+                mouseChunk = mousePosition//CHUNK_SIZE
                 chunk = World.worldData.get(str(mouseChunk))
                 if chunk != None:
-                    if len(chunk.paths) != 0:
-                        chunk.paths[0].addItem(0)
+                    building = chunk.chunkData.get(str(buildingPosition))
+                    if type(building) == Belt:
+                        building.linkedPath.addItem(0)
 
         if event.type == pygame.MOUSEWHEEL:
             Renderer.mainCamera.changeZoom(event.y*0.1)
@@ -73,6 +76,8 @@ def checkKeys(deltaTime):
     
     Renderer.mainCamera.move(direction * deltaTime)
 
+directionVector = pygame.Vector2(1, 0)
+
 def checkMousePresses():
     mousePressed = pygame.mouse.get_pressed(3)
     if mousePressed:
@@ -84,7 +89,8 @@ def checkMousePresses():
             if activePlaceable == Building:
                 newBuilding = activePlaceable(intWorldMousePos, pygame.Vector2(1, 1))
             elif activePlaceable == Belt:
-                newBuilding = activePlaceable(intWorldMousePos, pygame.Vector2(1, 1), Renderer.mainCamera.mouseDirection, Renderer.mainCamera.mouseDirection)
+                # newBuilding = activePlaceable(intWorldMousePos, pygame.Vector2(1, 1), Renderer.mainCamera.mouseDirection, Renderer.mainCamera.mouseDirection)
+                newBuilding = activePlaceable(intWorldMousePos, pygame.Vector2(1, 1), directionVector, directionVector)
             newBuilding.place()
         if mousePressed[2]:
             World.removeBuilding(intWorldMousePos)
@@ -99,12 +105,12 @@ startLoading = time.time()
 World.loadAllChunks(Buildings)
 print(f"Loading took {time.time() - startLoading} seconds")
 
-newPath = Path()
-newPath.addPoint(0, 0)
-newPath.addPoint(0, 4)
-newPath.addPoint(4, 4)
-newPath.addPoint(4, 0)
-World.addPath(newPath)
+# newPath = Path()
+# newPath.addPoint(pygame.Vector2(0, 0))
+# newPath.addPoint(pygame.Vector2(0, 4))
+# newPath.addPoint(pygame.Vector2(4, 4))
+# newPath.addPoint(pygame.Vector2(4, 0))
+# World.addPath(newPath)
 # newPath.addItem(0.50)
 # newPath.addItem(0.75)
 # newPath.addItem(0.50)
@@ -128,7 +134,11 @@ while True:
         frame1 = frame2
         # Frame based code goes here  
         checkKeys(deltaTime)
-        newPath.updateItems(deltaTime)
+        for chunk in World.worldData.values():
+            if len(chunk.paths) != 0:
+                for path in chunk.paths:
+                    path.updateItems(deltaTime)
+        # newPath.updateItems(deltaTime)
         Renderer.drawToScreen()
 
         tick += 1

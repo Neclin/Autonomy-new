@@ -6,23 +6,22 @@ from settings import CHUNK_SIZE, DEBUG_COLOUR
 class Chunk:
     def __init__(self, position):
         self.position = position
-        self.gameObject = []
         self.paths = []
         self.chunkData = {}
         self.size = pygame.Vector2(CHUNK_SIZE, CHUNK_SIZE)
     
     def draw(self, renderer):
         self.drawChunk(renderer)   
-        for gameObject in self.gameObject:
-            gameObject.draw(renderer)
+        for building in self.chunkData.values():
+            building.draw(renderer)
         for path in self.paths:
             path.draw(renderer)
 
     def addBuilding(self, building):
         if self.chunkData.get(str(building.position)) != None:
             return False
-        self.gameObject.append(building)
         self.chunkData[str(building.position)] = building
+        building.whenPlaced()
         return True
     
     def addPath(self, path):
@@ -33,12 +32,12 @@ class Chunk:
         pygame.draw.rect(renderer.win, DEBUG_COLOUR, rect, 1)
     
     def save(self):
-        if self.gameObject == []:
+        if self.chunkData == {}:
             if os.path.isfile("Chunks/"+str(self.position)+".txt"):
                 os.remove("Chunks/"+str(self.position)+".txt")
             return
         with open("Chunks/"+str(self.position)+".txt", "w") as file:
-            for building in self.gameObject:
+            for building in self.chunkData.values():
                 file.write(building.saveString()+"\n")
 
 class World:
@@ -64,11 +63,14 @@ class World:
                 chunk = chunk.split(",")
                 chunk = pygame.Vector2(int(chunk[0]), int(chunk[1]))
                 chunk = Chunk(chunk)
+                print(chunk.paths)
+                World.worldData[str(chunk.position)] = chunk
                 for line in file:
                     line = line.strip()
                     firstWorld = line.split(",")[0]
-                    chunk.addBuilding(Buildings[firstWorld].loadString(line))
-                World.worldData[str(chunk.position)] = chunk
+                    building = Buildings[firstWorld].loadString(line)
+                    chunk.addBuilding(building)
+                print(chunk.paths)
         except FileNotFoundError:
             pass
 
@@ -81,16 +83,23 @@ class World:
     def removeBuilding(position):
         chunkPosition = position//CHUNK_SIZE
         if World.worldData.get(str(chunkPosition)) == None:
-            return
+            return False
         chunk = World.worldData[str(chunkPosition)]
-        for building in chunk.gameObject:
-            if building.position == position:
-                chunk.gameObject.remove(building)
-                del chunk.chunkData[str(position)]
-                break
+        building = chunk.chunkData.get(str(position))
+        if building == None:
+            return False
+        building.remove()
+        return True
+        
 
     def addPath(path):
         chunkPosition = path.pointsHead.position//CHUNK_SIZE
         if World.worldData.get(str(chunkPosition)) == None:
             World.addChunk(chunkPosition)
         World.worldData[str(chunkPosition)].addPath(path)
+    
+    def getBuildingAtPosition(position):
+        chunkPosition = position//CHUNK_SIZE
+        if World.worldData.get(str(chunkPosition)) == None:
+            return None
+        return World.worldData[str(chunkPosition)].chunkData.get(str(position))

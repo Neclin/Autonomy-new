@@ -2,8 +2,11 @@ import pygame
 import math
 
 from settings import TILE_SIZE
+from world import World
 
 from Buildings.building import Building
+
+from path import Path
 
 spriteSheet = pygame.image.load("Assets/sprites.png")
 beltSpriteSheetStraight = [spriteSheet.subsurface((i*32, 0, 32, 32)) for i in range(8)]
@@ -25,6 +28,9 @@ class Belt(Building):
         self.spriteSheet = Belt.straightSpriteSheets[int(angle//90)]
         self.sprite = self.spriteSheet[0].subsurface(0, 0, 32, 32)
         self.linkedPath = None
+
+        self.nextBuilding = None
+        self.prevBuilding = None
     
     def updateSprite(self, renderer):
         self.sprite = self.spriteSheet[renderer.animationFrame].subsurface(0, 0, 32, 32)
@@ -45,11 +51,39 @@ class Belt(Building):
         endDirection = pygame.Vector2(float(string[7]), float(string[8]))
         return Belt(position, size, startDirection, endDirection)
 
-    def place(self):
-        if super().place():
-            print("Belt placed")
-            print("start direction: ", self.startDirection)
-            print("end direction: ", self.endDirection)
+    def whenPlaced(self):
+        self.getBuildings()
+        if self.prevBuilding:
+            center = self.position + self.size/2
+            end = center + self.endDirection/2
+            self.prevBuilding.linkedPath.addPoint(end)
+            self.linkedPath = self.prevBuilding.linkedPath
+        else:
+            self.createPath()
+            if self.nextBuilding:
+                self.linkedPath.addPath(self.nextBuilding.linkedPath)
+                # set the all next belts to the same path
+                nextBuilding = self.nextBuilding
+                while nextBuilding != None:
+                    nextBuilding.linkedPath = self.linkedPath
+                    nextBuilding = nextBuilding.nextBuilding
+        
+    def remove(self):
+        super().remove()
+        if self.linkedPath != None:
+            self.linkedPath.removePath()
 
-    def getPaths(self):
-        pass
+    def getBuildings(self):
+        self.nextBuilding = World.getBuildingAtPosition(self.position + self.endDirection)
+        self.prevBuilding = World.getBuildingAtPosition(self.position - self.startDirection)
+    
+    def createPath(self):
+        center = self.position + self.size/2
+        start = center - self.startDirection/2
+        end = center + self.endDirection/2
+        newPath = Path()
+        newPath.addPoint(start)
+        newPath.addPoint(end)
+        World.addPath(newPath)
+        print(newPath)
+        self.linkedPath = newPath

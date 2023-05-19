@@ -19,9 +19,6 @@ class Building():
             return
         pygame.draw.rect(renderer.win, (255,255,255), rect, 1)
     
-    def place(self):
-        return World.addBuilding(self)
-    
     def saveString(self):
         return f"Building, {self.position.x}, {self.position.y}, {self.size.x}, {self.size.y}"
 
@@ -30,3 +27,17 @@ class Building():
         position = pygame.Vector2(float(string[1]), float(string[2]))
         size = pygame.Vector2(float(string[3]), float(string[4]))
         return Building(position, size)
+    
+    def place(self):
+        return World.addBuilding(self)
+    
+    def whenPlaced(self):
+        pass
+
+    def remove(self):
+        chunkPosition = self.position // TILE_SIZE
+        chunk = World.worldData.get(str(chunkPosition))
+        if chunk == None:
+            return False
+        del chunk.chunkData[str(self.position)]
+        return True
