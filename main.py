@@ -105,17 +105,19 @@ startLoading = time.time()
 World.loadAllChunks(Buildings)
 print(f"Loading took {time.time() - startLoading} seconds")
 
-# newPath = Path()
-# newPath.addPoint(pygame.Vector2(0, 0))
-# newPath.addPoint(pygame.Vector2(0, 4))
-# newPath.addPoint(pygame.Vector2(4, 4))
-# newPath.addPoint(pygame.Vector2(4, 0))
-# World.addPath(newPath)
-# newPath.addItem(0.50)
-# newPath.addItem(0.75)
-# newPath.addItem(0.50)
-# newPath.addItem(0.33)
-# newPath.addItem(0)
+newPath = Path()
+newPath.addPoint(pygame.Vector2(1, 1))
+newPath.addPoint(pygame.Vector2(2, 1))
+newPath.addPoint(pygame.Vector2(3, 1))
+newPath.addPoint(pygame.Vector2(4, 2))
+newPath.addPoint(pygame.Vector2(3, 2))
+newPath.addPoint(pygame.Vector2(2, 6))
+World.addPath(newPath)
+newPath.addItem(0.3)
+newPath.addItem(0.5)
+newPath.addItem(0.3)
+
+# newPath.printPathPoints()
 
 frame1 = time.time()
 tick = 0
@@ -134,12 +136,8 @@ while True:
         frame1 = frame2
         # Frame based code goes here  
         checkKeys(deltaTime)
-        for chunk in World.worldData.values():
-            if len(chunk.paths) != 0:
-                for path in chunk.paths:
-                    path.updateItems(deltaTime)
-        # newPath.updateItems(deltaTime)
-        Renderer.drawToScreen()
+
+        Renderer.drawToScreen(deltaTime)
 
         tick += 1
 

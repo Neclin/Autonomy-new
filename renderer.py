@@ -71,7 +71,7 @@ class Renderer:
     animationFrame = 0
 
 
-    def drawToScreen():
+    def drawToScreen(deltaTime):
         Renderer.win.fill((51,51,51))
         
         Renderer.mainCamera.drawGrid()
@@ -79,6 +79,10 @@ class Renderer:
         Renderer.mainCamera.drawCursor()
        
         Renderer.drawChunks()
+
+        for path in World.paths.values():
+            path.updateItems(deltaTime)
+            path.draw(Renderer)
 
         pygame.display.update()
 

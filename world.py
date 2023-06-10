@@ -42,6 +42,7 @@ class Chunk:
 
 class World:
     worldData = {}
+    paths = {}
 
     def addChunk(position):
         World.worldData[str(position)] = Chunk(position)
@@ -93,10 +94,11 @@ class World:
         
 
     def addPath(path):
-        chunkPosition = path.pointsHead.position//CHUNK_SIZE
-        if World.worldData.get(str(chunkPosition)) == None:
-            World.addChunk(chunkPosition)
-        World.worldData[str(chunkPosition)].addPath(path)
+        pathPoint = path.firstPathPoint.position
+        if World.paths.get(str(pathPoint)) != None:
+            print("Path already exists")
+            return False
+        World.paths[str(pathPoint)] = path
     
     def getBuildingAtPosition(position):
         chunkPosition = position//CHUNK_SIZE
