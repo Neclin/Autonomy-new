@@ -45,10 +45,17 @@ class Camera:
             pygame.draw.line(Renderer.win, GRID_COLOUR, leftPoint, rightPoint, 1)
     
     def drawCursor(self):
+        cursorDimensions = pygame.Vector2(World.cursorSize,World.cursorSize)
+        offset = cursorDimensions//2
+        evenOffset = 0 if World.cursorSize % 2 == 1 else 0.5
+        evenOffset = pygame.Vector2(evenOffset, evenOffset)
+
         mousePos = pygame.mouse.get_pos()
         mousePos = self.convertScreenToWorld(pygame.Vector2(mousePos[0], mousePos[1]))
+        mousePos += evenOffset
         mousePos = mousePos//1
-        cursorRect = self.convertWorldRectToScreen(mousePos, pygame.Vector2(1,1))
+        
+        cursorRect = self.convertWorldRectToScreen(mousePos - offset, cursorDimensions)
         pygame.draw.rect(Renderer.win, (255,255,255), cursorRect, 1, border_radius=int(5*self.zoom))
 
         # draw line pointing in mouse direction
